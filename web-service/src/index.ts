@@ -16,7 +16,8 @@ import {
   createPairingOffer,
   attemptPair,
   routeSecureMessage,
-  removeClientSessions
+  removeClientSessions,
+  resumePairSession
 } from './pairing.js';
 import { isOriginAllowed } from './origins.js';
 import { ENV } from './config.js';
@@ -352,6 +353,40 @@ wss.on('connection', (ws: WebSocket, req) => {
             type: 'secure_ack',
             timestamp: new Date().toISOString(),
             payload: { delivered: true }
+          }));
+          break;
+        }
+
+        case 'resume_session': {
+          const payload = (message.payload || {}) as { pairToken?: string };
+          if (!payload.pairToken) {
+            ws.send(JSON.stringify({
+              type: 'resume_error',
+              payload: { message: 'Pair token diperlukan untuk resume session.' },
+              timestamp: new Date().toISOString()
+            }));
+            break;
+          }
+
+          const resumeResult = resumePairSession(payload.pairToken, clientId, session.clientType, ws);
+          if (!resumeResult.resumed) {
+            ws.send(JSON.stringify({
+              type: 'resume_error',
+              payload: { message: resumeResult.error },
+              timestamp: new Date().toISOString()
+            }));
+            break;
+          }
+
+          ws.send(JSON.stringify({
+            type: 'resume_success',
+            payload: {
+              sessionId: resumeResult.session.sessionId,
+              pairToken: resumeResult.session.pairToken,
+              pairCode: resumeResult.session.pairCode,
+              message: 'Sesi pairing berhasil dipulihkan.'
+            },
+            timestamp: new Date().toISOString()
           }));
           break;
         }

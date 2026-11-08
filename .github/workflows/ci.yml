@@ -1,0 +1,73 @@
+name: Omni Monorepo CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  verify:
+    name: Lint, Test & Build Verification
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-gnu
+
+      - name: Cache Cargo dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            desktop-platform/src-tauri/target/
+            mobile-platform/src-tauri/target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Install system dependencies for Tauri (Linux)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - name: Install NPM dependencies across all packages
+        run: |
+          npm install --prefix web-service
+          npm install --prefix web-storage
+          npm install --prefix desktop-platform
+          npm install --prefix web-platform
+          npm install --prefix mobile-platform
+
+      - name: Anti-Slop Rule R-02 Audit (Zero Em Dashes)
+        run: |
+          echo "Auditing workspace for forbidden em dashes (Anti-Slop Rule R-02)..."
+          EM_DASH=$(printf '\xe2\x80\x94')
+          if grep -rn "$EM_DASH" desktop-platform/src mobile-platform/src web-platform/src web-service/src web-storage/src documents .gemini .agents packages; then
+            echo "Error: Forbidden em dash character detected. Use colons, hyphens, or parentheses instead."
+            exit 1
+          fi
+          echo "Anti-Slop Rule R-02 audit passed (0 em dashes found)."
+
+      - name: Run all workspace unit tests
+        run: npm run test:all
+
+      - name: Run workspace type checks and cargo check
+        run: npm run check:all
+
+      - name: Build all platform production artifacts
+        run: npm run build:all

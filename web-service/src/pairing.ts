@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import type { WebSocket } from 'ws';
 import { ClientType } from './types.js';
 import { ENV } from './config.js';
+import { sessionStore } from './session-store.js';
 
 export interface PendingPair {
   pairCode: string;
@@ -181,7 +182,59 @@ export function attemptPair(
   activeSessions.set(pairToken, session);
   pendingPairs.delete(lookupKey);
 
+  sessionStore.save({
+    sessionId,
+    pairToken,
+    pairCode: pending.pairCode,
+    desktopClientId: pending.desktopClientId,
+    webClientId,
+    pairedAt: session.pairedAt,
+    expiresAt: Date.now() + 24 * 60 * 60 * 1000
+  });
+
   return { success: true, session, desktopPending: pending };
+}
+
+/**
+ * Re-attach a disconnected socket to a recovered active session
+ */
+export function resumePairSession(
+  pairToken: string,
+  clientId: string,
+  clientType: ClientType | string,
+  ws: WebSocket
+): { resumed: true; session: ActivePairSession; isDesktop: boolean } | { resumed: false; error: string } {
+  let session = activeSessions.get(pairToken);
+
+  if (!session) {
+    const persisted = sessionStore.get(pairToken);
+    if (!persisted) {
+      return { resumed: false, error: 'Sesi pairing tidak ditemukan atau telah kedaluwarsa.' };
+    }
+
+    session = {
+      sessionId: persisted.sessionId,
+      pairToken: persisted.pairToken,
+      pairCode: persisted.pairCode,
+      desktopClientId: persisted.desktopClientId,
+      desktopWs: ws,
+      webClientId: persisted.webClientId,
+      webWs: ws,
+      pairedAt: persisted.pairedAt
+    };
+    activeSessions.set(pairToken, session);
+  }
+
+  const isDesktop = clientType === ClientType.DESKTOP || clientType === 'desktop';
+  if (isDesktop) {
+    session.desktopClientId = clientId;
+    session.desktopWs = ws;
+  } else {
+    session.webClientId = clientId;
+    session.webWs = ws;
+  }
+
+  return { resumed: true, session, isDesktop };
 }
 
 /**

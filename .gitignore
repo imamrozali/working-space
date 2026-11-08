@@ -41,6 +41,8 @@ out/
 # Runtime storage and user uploads
 web-storage/cdn-global/*
 !web-storage/cdn-global/hello-cdn.txt
+web-service/data/
+data/
 *.tmp
 *.temp
 tmp/
