@@ -1,14 +1,32 @@
-name: Omni Monorepo CI
+name: Omni Multiplatform CI & Release Pipeline
 
 on:
   push:
     branches: [ main ]
+    tags: [ 'v*' ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      build_desktop:
+        description: 'Build Desktop binaries (macOS, Windows, Linux)'
+        type: boolean
+        default: true
+      build_mobile:
+        description: 'Build Mobile packages (Android APK & iOS)'
+        type: boolean
+        default: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
+  # -------------------------------------------------------------
+  # Job 1: Fast Quality Gate, Tests & Lint Verification
+  # -------------------------------------------------------------
   verify:
-    name: Lint, Test & Build Verification
+    name: Monorepo Quality Gate & Unit Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -26,21 +44,7 @@ jobs:
         with:
           targets: x86_64-unknown-linux-gnu
 
-      - name: Cache Cargo dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            desktop-platform/src-tauri/target/
-            mobile-platform/src-tauri/target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
-
-      - name: Install system dependencies for Tauri (Linux)
+      - name: Install system dependencies for Linux Tauri
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
@@ -69,5 +73,174 @@ jobs:
       - name: Run workspace type checks and cargo check
         run: npm run check:all
 
-      - name: Build all platform production artifacts
+      - name: Build all platform web assets
         run: npm run build:all
+
+  # -------------------------------------------------------------
+  # Job 2: Desktop Multi-Platform Matrix (macOS, Windows, Linux)
+  # -------------------------------------------------------------
+  build-desktop:
+    name: Desktop Build (${{ matrix.platform.name }})
+    needs: verify
+    if: github.event_name == 'push' || startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.event.inputs.build_desktop != 'false')
+    runs-on: ${{ matrix.platform.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - os: macos-latest
+            name: macOS
+            target: aarch64-apple-darwin
+          - os: windows-latest
+            name: Windows
+            target: x86_64-pc-windows-msvc
+          - os: ubuntu-22.04
+            name: Linux
+            target: x86_64-unknown-linux-gnu
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform.target }}
+
+      - name: Install Linux build dependencies
+        if: matrix.platform.os == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+
+      - name: Install frontend dependencies
+        run: |
+          npm install --prefix desktop-platform
+
+      - name: Build Desktop Application (Tauri v2)
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: desktop-platform
+          tagName: v__VERSION__
+          releaseName: 'Omni Desktop v__VERSION__'
+          releaseBody: 'Omni Desktop release bundle.'
+          releaseDraft: true
+          prerelease: false
+
+      - name: Upload Desktop Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: omni-desktop-${{ matrix.platform.name }}
+          path: |
+            desktop-platform/src-tauri/target/release/bundle/
+            desktop-platform/src-tauri/target/${{ matrix.platform.target }}/release/bundle/
+          if-no-files-found: ignore
+
+  # -------------------------------------------------------------
+  # Job 3: Mobile Android Build (APK & AAB)
+  # -------------------------------------------------------------
+  build-mobile-android:
+    name: Mobile Build (Android APK)
+    needs: verify
+    if: github.event_name == 'push' || startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.event.inputs.build_mobile != 'false')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android NDK & Build Tools
+        run: |
+          sdkmanager --install "ndk;26.1.10909125" "build-tools;34.0.0" "platforms;android-34"
+          echo "NDK_HOME=$ANDROID_HOME/ndk/26.1.10909125" >> $GITHUB_ENV
+
+      - name: Set up Rust toolchain & Android Targets
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+
+      - name: Install Mobile frontend dependencies
+        run: |
+          npm install --prefix mobile-platform
+
+      - name: Initialize Android Project
+        run: |
+          cd mobile-platform
+          npx tauri android init
+
+      - name: Build Android APK
+        run: |
+          cd mobile-platform
+          npx tauri android build --apk
+
+      - name: Upload Android APK Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: omni-mobile-android-apk
+          path: mobile-platform/src-tauri/gen/android/app/build/outputs/apk/
+          if-no-files-found: ignore
+
+  # -------------------------------------------------------------
+  # Job 4: Mobile iOS Build (IPA & Simulator App)
+  # -------------------------------------------------------------
+  build-mobile-ios:
+    name: Mobile Build (iOS)
+    needs: verify
+    if: github.event_name == 'push' || startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.event.inputs.build_mobile != 'false')
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set up Rust toolchain & iOS Targets
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios,aarch64-apple-ios-sim,x86_64-apple-ios
+
+      - name: Install Mobile frontend dependencies
+        run: |
+          npm install --prefix mobile-platform
+
+      - name: Initialize iOS Project
+        run: |
+          cd mobile-platform
+          npx tauri ios init
+
+      - name: Build iOS Application (Simulator / Unsigned)
+        run: |
+          cd mobile-platform
+          npx tauri ios build --no-signing
+
+      - name: Upload iOS Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: omni-mobile-ios-bundle
+          path: mobile-platform/src-tauri/gen/apple/build/
+          if-no-files-found: ignore

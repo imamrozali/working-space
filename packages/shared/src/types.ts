@@ -70,3 +70,4 @@ export interface WSMessage<T = unknown> {
   timestamp?: string;
   sender?: string;
 }
+

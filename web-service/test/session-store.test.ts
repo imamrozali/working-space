@@ -80,3 +80,4 @@ describe('web-service session persistence store', () => {
     assert.equal(result, undefined);
   });
 });
+
