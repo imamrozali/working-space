@@ -3,7 +3,13 @@ import path from 'path';
 import crypto from 'crypto';
 import mime from 'mime-types';
 import type { IncomingMessage, ServerResponse } from 'http';
-import { STORAGE_PATH, CDN_FOLDER, STORAGE_API_KEY, MAX_UPLOAD_SIZE } from './config.js';
+import { STORAGE_PATH, CDN_FOLDER, STORAGE_API_KEY, MAX_UPLOAD_SIZE, ALLOWED_EXTENSIONS } from './config.js';
+
+export function isExtensionAllowed(filename: string): boolean {
+  const ext = path.extname(filename).toLowerCase().replace(/^\./, '');
+  if (!ext) return false;
+  return ALLOWED_EXTENSIONS.includes(ext);
+}
 
 export function formatBytes(bytes: number): string {
   const KB = 1024;
@@ -242,6 +248,14 @@ export async function handleUpload(req: IncomingMessage, res: ServerResponse): P
         res.writeHead(400, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({
           error: 'Filename is required via query (?filename=...), header (X-Filename), or JSON body'
+        }));
+        return;
+      }
+
+      if (!isExtensionAllowed(targetFilename)) {
+        res.writeHead(415, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          error: `File extension not allowed. Whitelist: ${ALLOWED_EXTENSIONS.join(', ')}`
         }));
         return;
       }

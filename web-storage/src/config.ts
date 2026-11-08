@@ -1,6 +1,32 @@
 import path from 'path';
 import fs from 'fs';
 
+const DEFAULT_ALLOWED_EXTENSIONS: readonly string[] = [
+  'png',
+  'jpg',
+  'jpeg',
+  'webp',
+  'svg',
+  'gif',
+  'ico',
+  'mp3',
+  'wav',
+  'ogg',
+  'json',
+  'txt',
+  'pdf',
+  'md',
+];
+
+function parseAllowedExtensions(raw: string | undefined): readonly string[] {
+  if (!raw) return DEFAULT_ALLOWED_EXTENSIONS;
+  const list = raw
+    .split(',')
+    .map((ext) => ext.trim().toLowerCase().replace(/^\./, ''))
+    .filter((ext) => ext.length > 0);
+  return list.length > 0 ? list : DEFAULT_ALLOWED_EXTENSIONS;
+}
+
 /**
  * Central Environment & Configuration for web-storage
  */
@@ -15,6 +41,7 @@ export const ENV = {
   // No fallback secret. When unset, mutating endpoints (upload/delete) are disabled.
   STORAGE_API_KEY: process.env.STORAGE_API_KEY?.trim() || null,
   MAX_UPLOAD_SIZE: Number(process.env.MAX_UPLOAD_SIZE) || 50 * 1024 * 1024, // 50 MB
+  ALLOWED_EXTENSIONS: parseAllowedExtensions(process.env.ALLOWED_EXTENSIONS),
 } as const;
 
 const MIN_API_KEY_LENGTH = 32;
@@ -35,7 +62,15 @@ if (ENV.STORAGE_API_KEY === null) {
   console.warn('[web-storage] STORAGE_API_KEY is not set: upload and delete endpoints are disabled.');
 }
 
-export const { PORT, HOST, CDN_FOLDER, STORAGE_PATH, STORAGE_API_KEY, MAX_UPLOAD_SIZE } = ENV;
+export const {
+  PORT,
+  HOST,
+  CDN_FOLDER,
+  STORAGE_PATH,
+  STORAGE_API_KEY,
+  MAX_UPLOAD_SIZE,
+  ALLOWED_EXTENSIONS,
+} = ENV;
 
 export function initStorageDirectory(): void {
   if (!fs.existsSync(STORAGE_PATH)) {

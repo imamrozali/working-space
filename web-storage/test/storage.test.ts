@@ -5,7 +5,7 @@ import type { IncomingMessage } from 'node:http';
 
 process.env.STORAGE_API_KEY = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
-const { getSafeFilePath, checkAuthorization } = await import('../src/storage.js');
+const { getSafeFilePath, checkAuthorization, isExtensionAllowed } = await import('../src/storage.js');
 const { STORAGE_PATH } = await import('../src/config.js');
 
 function mockRequest(headers: Record<string, string | undefined> = {}, url: string = '/cdn/upload'): IncomingMessage {
@@ -61,6 +61,23 @@ describe('web-storage security and containment', () => {
 
     // Query string token is explicitly rejected for security
     assert.equal(checkAuthorization(mockRequest({}, `/cdn/upload?token=${validKey}`)), 'unauthorized');
+  });
+
+  it('validates file extensions against whitelist', () => {
+    // Whitelisted extensions
+    assert.equal(isExtensionAllowed('avatar.png'), true);
+    assert.equal(isExtensionAllowed('photo.JPG'), true);
+    assert.equal(isExtensionAllowed('music.mp3'), true);
+    assert.equal(isExtensionAllowed('document.pdf'), true);
+    assert.equal(isExtensionAllowed('data.json'), true);
+    assert.equal(isExtensionAllowed('notes.txt'), true);
+
+    // Blocked extensions (executables, scripts, malicious files)
+    assert.equal(isExtensionAllowed('script.sh'), false);
+    assert.equal(isExtensionAllowed('malware.exe'), false);
+    assert.equal(isExtensionAllowed('payload.bat'), false);
+    assert.equal(isExtensionAllowed('backdoor.php'), false);
+    assert.equal(isExtensionAllowed('no-extension-file'), false);
   });
 });
 
