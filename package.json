@@ -1,0 +1,19 @@
+{
+  "name": "omni-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Omni multi-platform workspace root orchestration",
+  "scripts": {
+    "dev:desktop": "npm run dev --prefix desktop-platform",
+    "dev:desktop:tauri": "npm run tauri:dev --prefix desktop-platform",
+    "dev:web": "npm run dev --prefix web-platform",
+    "dev:mobile": "npm run dev --prefix mobile-platform",
+    "dev:mobile:tauri": "npm run tauri:dev --prefix mobile-platform",
+    "dev:service": "npm run dev --prefix web-service",
+    "dev:storage": "npm run dev --prefix web-storage",
+    "build:all": "npm run build --prefix web-service && npm run build --prefix web-storage && npm run build --prefix desktop-platform && npm run build --prefix web-platform && npm run build --prefix mobile-platform",
+    "test:all": "npm test --prefix web-service && npm test --prefix web-storage && cargo test --manifest-path desktop-platform/src-tauri/Cargo.toml && cargo test --manifest-path mobile-platform/src-tauri/Cargo.toml",
+    "check:all": "npm run build --prefix web-service && npm run build --prefix web-storage && cargo check --manifest-path desktop-platform/src-tauri/Cargo.toml && cargo check --manifest-path mobile-platform/src-tauri/Cargo.toml"
+  }
+}
+

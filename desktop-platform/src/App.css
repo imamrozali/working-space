@@ -1,0 +1,1476 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --ps-bg: #000000;
+  --ps-white: #ffffff;
+  --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --ease-ps: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.25, 0.64, 1);
+  --ease-tile: cubic-bezier(0.2, 0.8, 0.25, 1);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--ps-bg);
+  color: var(--ps-white);
+  font-family: var(--font-family);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* App Wrapper with Vignette & Atmospheric Glow Beam */
+.ps5-app-wrapper {
+  position: relative;
+  min-height: 100vh;
+  background-color: var(--ps-bg);
+  overflow-x: hidden;
+}
+
+.ps5-glow-beam {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  height: 300px;
+  background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(255, 255, 255, 0.05), transparent 70%);
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.7;
+}
+
+.ps5-vignette {
+  position: fixed;
+  inset: 0;
+  background: 
+    radial-gradient(ellipse 95% 75% at 50% 32%, transparent 25%, rgba(3, 5, 8, 0.65) 80%),
+    linear-gradient(180deg, rgba(3, 5, 8, 0.85) 0%, rgba(3, 5, 8, 0.12) 20%, rgba(3, 5, 8, 0.35) 55%, rgba(3, 5, 8, 0.95) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ps5-main-container {
+  position: relative;
+  z-index: 10;
+  max-width: 1040px;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: clamp(14px, 2.2vh, 26px) clamp(20px, 3.5vw, 54px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+/* Topbar Navigation */
+.ps5-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ps5-brand-block {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.ps5-brand-title {
+  font-size: clamp(18px, 1.4vw, 22px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ps-white);
+}
+
+.ps5-badge-pill {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2.5px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: var(--ps-white);
+  white-space: nowrap;
+}
+
+.ps5-hub-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(12px, 1.4vw, 20px);
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.ps5-hub-tab {
+  background: transparent;
+  border: none;
+  font-family: var(--font-family);
+  font-size: clamp(13px, 1.05vw, 14.5px);
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  position: relative;
+  padding: 6px 4px 10px;
+  transition: color 0.22s var(--ease-ps);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.ps5-hub-tab:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.ps5-hub-tab.active {
+  color: #ffffff;
+}
+
+.ps5-hub-tabs-glider {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2.5px;
+  background-color: #ffffff;
+  border-radius: 999px;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.7), 0 0 2px rgba(255, 255, 255, 0.95);
+  pointer-events: none;
+  transition: transform 0.32s cubic-bezier(0.2, 0.9, 0.2, 1), width 0.32s cubic-bezier(0.2, 0.9, 0.2, 1), opacity 0.2s ease;
+  will-change: transform, width;
+  opacity: 0;
+}
+
+.ps5-system-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.ps5-status-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.ps5-sound-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+
+.ps5-sound-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.35);
+  transform: scale(1.05);
+}
+
+.ps5-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: var(--ps-white);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.ps5-sys-btn-pill {
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.72);
+  font-family: var(--font-family);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.18s var(--ease-spring);
+}
+
+.ps5-sys-btn-pill:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.35);
+  transform: scale(1.04);
+}
+
+.ps5-sys-btn-pill:active {
+  transform: scale(0.96);
+}
+
+.ps5-reconnect-btn {
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #000000;
+  font-family: var(--font-family);
+  font-size: 11px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.18s var(--ease-spring), background-color 0.18s ease;
+}
+
+.ps5-reconnect-btn:hover {
+  background: #f1f5f9;
+  transform: scale(1.04);
+}
+
+.ps5-reconnect-btn:active {
+  transform: scale(0.96);
+}
+
+/* Service Ribbon Tiles Track */
+.ps5-ribbon-section {
+  position: relative;
+  width: calc(100% + 56px);
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 16px 28px 30px 28px;
+  margin-left: -28px;
+  margin-right: -28px;
+  margin-bottom: -16px;
+  scrollbar-width: none;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
+}
+
+.ps5-ribbon-section::-webkit-scrollbar {
+  display: none;
+}
+
+.ps5-tiles-track {
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 1.3vw, 18px);
+  width: max-content;
+  padding: 4px 0;
+}
+
+.ps5-tile {
+  width: clamp(76px, 5.8vw, 86px);
+  height: clamp(76px, 5.8vw, 86px);
+  border-radius: 14px;
+  background: #18181b;
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid transparent;
+  box-sizing: border-box;
+  outline: none;
+  overflow: visible;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  padding: 8px 6px;
+  scroll-snap-align: start;
+  transition: transform 0.22s var(--ease-spring), opacity 0.2s ease, border-color 0.2s ease, box-shadow 0.22s ease;
+  color: inherit;
+  font-family: inherit;
+  text-align: center;
+}
+
+.ps5-tile:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 3px;
+}
+
+.ps5-tile:not(.active) {
+  opacity: 0.72;
+}
+
+.ps5-tile:not(.active):hover {
+  opacity: 0.95;
+  transform: translateY(-2px) scale(1.03);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
+}
+
+.ps5-tile:not(.active):active {
+  transform: translateY(-1px) scale(0.98);
+}
+
+.ps5-tile.active {
+  opacity: 1;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.4), 0 8px 24px rgba(0, 0, 0, 0.6);
+  transform: translateY(-4px) scale(1.08);
+  z-index: 10;
+}
+
+.tile-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  color: #ffffff;
+  transition: transform 0.22s var(--ease-spring), color 0.2s ease;
+}
+
+.tile-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.ps5-tile:hover .tile-icon {
+  transform: scale(1.08);
+}
+
+.ps5-tile.active .tile-icon {
+  transform: scale(1.12);
+}
+
+.tile-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-top: 4px;
+}
+
+.tile-name {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--ps-white);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.tile-role {
+  font-size: 8.5px;
+  color: rgba(255, 255, 255, 0.48);
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+/* Details & Action Section with Fluid Fade-Up */
+.ps5-details-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 4px;
+  animation: ps5FadeUp 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes ps5FadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ps5-section-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ps5-edition-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-family);
+  font-size: clamp(12px, 0.9vw, 13px);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.ps-gold-pill {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #f5c518;
+  color: #000000;
+}
+
+.ps-meta-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.ps5-game-title {
+  font-family: var(--font-family);
+  font-size: clamp(30px, 4.2vw, 52px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  color: #ffffff;
+  text-shadow: 0 4px 18px rgba(0, 0, 0, 0.8);
+}
+
+.ps5-game-desc {
+  font-family: var(--font-family);
+  font-size: clamp(13px, 0.95vw, 14.5px);
+  line-height: 1.5;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.82);
+  max-width: 540px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+/* Signature Capsule Command Container (Reference: .form-pill-container) */
+.form-pill-container {
+  width: 100%;
+  max-width: 530px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 6px 5px 20px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+  margin-top: 4px;
+}
+
+.form-pill-container:hover {
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.form-pill-container:focus-within {
+  border-color: rgba(255, 255, 255, 0.65);
+  box-shadow: 0 0 14px rgba(255, 255, 255, 0.18);
+}
+
+.cmd-code-text {
+  font-family: var(--font-mono);
+  font-size: clamp(18px, 1.8vw, 22px);
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: #ffffff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.btn-icon-copy {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background-color 0.18s ease, border-color 0.18s ease, transform 0.18s var(--ease-spring);
+}
+
+.btn-icon-copy:hover {
+  background: rgba(255, 255, 255, 0.24);
+  border-color: rgba(255, 255, 255, 0.42);
+  transform: scale(1.06);
+}
+
+.btn-icon-copy:active {
+  transform: scale(0.96);
+}
+
+.btn-icon-copy.is-copied {
+  background: rgba(15, 80, 40, 0.55);
+  border-color: rgba(100, 255, 150, 0.5);
+  color: #a8f5c4;
+}
+
+/* Meta Pills Row */
+.ps5-meta-pills-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.ps-meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 12px;
+  cursor: default;
+  transition: border-color 0.2s ease;
+}
+
+.ps-meta-chip:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.chip-key {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.chip-val {
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+.ps5-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.ps5-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  height: clamp(42px, 4.8vh, 48px);
+  padding: 0 clamp(24px, 2.6vw, 34px);
+  border-radius: 999px;
+  background-color: #ffffff;
+  color: #000000;
+  border: none;
+  font-family: var(--font-family);
+  font-size: clamp(14px, 1.05vw, 15px);
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: -0.01em;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  transition: transform 0.18s var(--ease-spring), background-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.ps5-btn-primary:hover:not(:disabled) {
+  background: #f1f5f9;
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.2);
+}
+
+.ps5-btn-primary:active:not(:disabled) {
+  transform: translateY(0) scale(0.96);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+}
+
+.ps5-btn-secondary {
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  font-family: var(--font-family);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: transform 0.18s var(--ease-spring), background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.ps5-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.38);
+  transform: translateY(-1px) scale(1.02);
+}
+
+.ps5-btn-secondary:active {
+  transform: scale(0.96);
+}
+
+.ps5-helper-note {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.ps5-loading-offer {
+  padding: 20px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13.5px;
+  max-width: 530px;
+}
+
+/* Paired Active Alert */
+.ps5-paired-alert {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  max-width: 640px;
+}
+
+.alert-badge {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #10b981;
+  color: #000000;
+}
+
+.alert-body {
+  font-size: 13px;
+  color: #34d399;
+}
+
+.alert-sub {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 2px;
+}
+
+.ps5-chat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 640px;
+  margin-top: 8px;
+}
+
+.card-subtitle {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.ps5-stream-box {
+  background: rgba(10, 14, 20, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 14px 16px;
+  max-height: 180px;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stream-empty {
+  color: rgba(255, 255, 255, 0.45);
+  font-style: italic;
+}
+
+.stream-line {
+  word-break: break-all;
+}
+
+.sender-tag {
+  color: #38bdf8;
+  font-weight: 700;
+  margin-right: 6px;
+}
+
+.time-tag {
+  color: rgba(255, 255, 255, 0.45);
+  margin-right: 6px;
+}
+
+.msg-payload {
+  color: #ffffff;
+}
+
+/* Frosted Glass Console Capsule Form & Input */
+.ps5-capsule-form {
+  position: relative;
+  width: 100%;
+  max-width: 620px;
+  display: flex;
+  align-items: center;
+  padding: 4px 6px 4px 18px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ps5-capsule-form:hover,
+.ps5-capsule-form:focus-within {
+  border-color: rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 16px rgba(255, 255, 255, 0.16), 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.ps5-capsule-input-box {
+  position: relative;
+  width: 100%;
+  max-width: 620px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  padding: 4px 18px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ps5-capsule-input-box:hover,
+.ps5-capsule-input-box:focus-within {
+  border-color: rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 16px rgba(255, 255, 255, 0.16), 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.capsule-prefix {
+  color: rgba(255, 255, 255, 0.45);
+  font-family: ui-monospace, "SF Mono", Menlo, Monaco, Consolas, monospace;
+  font-size: 13.5px;
+  font-weight: 700;
+  margin-right: 10px;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.capsule-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  outline: none;
+  min-width: 0;
+}
+
+.capsule-input::placeholder {
+  color: rgba(255, 255, 255, 0.38);
+  font-size: 13px;
+}
+
+.capsule-submit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 40px;
+  padding: 0 20px;
+  border-radius: 9999px;
+  background: #ffffff;
+  color: #000000;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.18s cubic-bezier(0.34, 1.25, 0.64, 1), box-shadow 0.18s ease, opacity 0.18s ease, background-color 0.18s ease;
+}
+
+.capsule-submit-btn:hover:not(:disabled) {
+  transform: scale(1.05);
+  background: #f8fafc;
+  box-shadow: 0 0 16px rgba(255, 255, 255, 0.55);
+}
+
+.capsule-submit-btn:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.capsule-submit-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.ipc-capsule-form {
+  max-width: 540px;
+}
+
+/* Console Step Code Card (Reference: .subpage-step-code-card) */
+.subpage-step-code-card {
+  background: rgba(14, 18, 24, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  overflow-x: auto;
+  max-width: 720px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.stream-pre {
+  padding: 16px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.code-line {
+  display: block;
+}
+
+.code-time {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.code-sender {
+  color: #38bdf8;
+  font-weight: 700;
+}
+
+/* Config & Presets */
+.ps5-config-box {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 640px;
+}
+
+.ps5-presets-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ps5-preset-btn {
+  height: 32px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.65);
+  font-family: var(--font-family);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.18s var(--ease-spring);
+}
+
+.ps5-preset-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.ps5-preset-btn.active {
+  background: #ffffff;
+  color: #000000;
+  border-color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.35);
+}
+
+/* Tauri IPC Card */
+.ps5-ipc-footer {
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 640px;
+}
+
+.ipc-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ipc-badge {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+}
+
+.ipc-sub {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.ipc-form {
+  display: flex;
+  gap: 8px;
+}
+
+.ipc-input {
+  flex: 1;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-family: var(--font-family);
+  font-size: 12.5px;
+  outline: none;
+}
+
+.ipc-btn {
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #000000;
+  font-family: var(--font-family);
+  font-size: 12.5px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+}
+
+.ipc-msg {
+  font-size: 12px;
+  color: #38bdf8;
+  font-weight: 600;
+}
+
+/* Controller Prompts Bottom Bar (Reference: .ps5-bottom-bar) */
+.ps5-bottom-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: clamp(8px, 1.2vh, 14px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: clamp(11.5px, 0.9vw, 12.5px);
+  color: rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+  margin-top: auto;
+}
+
+.bottom-shortcuts {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.shortcut-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.shortcut-key {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.bottom-version {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+}
+
+/* Web Storage Styles */
+.ps5-storage-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+@media (max-width: 768px) {
+  .ps5-storage-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.storage-status-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.storage-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.storage-badge-online {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+}
+
+.storage-info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.storage-label {
+  color: rgba(255, 255, 255, 0.45);
+  min-width: 110px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.storage-code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ps-white);
+  word-break: break-all;
+}
+
+.storage-sec-val {
+  color: #10b981;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.storage-folder-val {
+  font-family: var(--font-mono);
+  color: #f59e0b;
+  font-size: 12.5px;
+}
+
+.storage-diag-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 80px;
+}
+
+.diag-result {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.diag-line {
+  display: flex;
+  gap: 8px;
+}
+
+.diag-k {
+  color: rgba(255, 255, 255, 0.45);
+  min-width: 80px;
+}
+
+.diag-v {
+  color: var(--ps-white);
+  font-family: var(--font-mono);
+}
+
+.diag-v-ok {
+  color: #10b981;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.diag-error {
+  color: #ef4444;
+  font-size: 12.5px;
+  padding: 6px 10px;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 6px;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.diag-hint {
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.45);
+  line-height: 1.5;
+}
+
+/* Storage Resource Metrics & Progress Bars */
+.storage-meter-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.storage-metric-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+@media (max-width: 640px) {
+  .storage-metric-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
+
+.metric-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.metric-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.metric-val {
+  font-family: var(--font-mono);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.text-used {
+  color: #fbbf24;
+}
+
+.text-free {
+  color: #34d399;
+}
+
+.ps5-meter-track {
+  width: 100%;
+  height: 8px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.ps5-meter-fill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fill-cyan {
+  background: linear-gradient(90deg, #38bdf8, #10b981);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+}
+
+.fill-gold {
+  background: linear-gradient(90deg, #f59e0b, #ef4444);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+}
+
+.meter-footer-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.meter-percent {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.btn-storage-refresh {
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.85);
+  font-family: var(--font-family);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.18s var(--ease-spring);
+}
+
+.btn-storage-refresh:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-storage-refresh:active {
+  transform: translateY(1px);
+}
+
+/* Responsive Media Queries */
+@media (max-width: 980px) {
+  .ps5-topbar {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "brand system"
+      "tabs tabs";
+    row-gap: 12px;
+    column-gap: 12px;
+    align-items: center;
+    padding-bottom: 12px;
+  }
+  .ps5-brand-block {
+    grid-area: brand;
+    flex: none;
+  }
+  .ps5-system-bar {
+    grid-area: system;
+    flex: none;
+    justify-content: flex-end;
+  }
+  .ps5-hub-tabs {
+    grid-area: tabs;
+    width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .ps5-hub-tabs::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (max-width: 580px) {
+  .ps5-sys-btn-pill {
+    display: none;
+  }
+  .ps5-brand-title {
+    font-size: 18px;
+  }
+  .ps5-status-pill {
+    padding: 0 8px;
+    font-size: 10.5px;
+  }
+}
+
+@media (max-width: 768px) {
+  .ps5-main-container {
+    padding: 14px 16px;
+  }
+  .ps5-pill-form {
+    flex-direction: column;
+  }
+  .ps5-pill-input {
+    width: 100%;
+  }
+  .ipc-form {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .ps5-main-container {
+    padding: 12px !important;
+  }
+  .ps5-game-title {
+    font-size: clamp(24px, 7.5vw, 30px) !important;
+  }
+  .form-pill-container {
+    height: 48px !important;
+    padding: 4px 6px 4px 14px !important;
+  }
+  .btn-icon-copy {
+    width: 36px !important;
+    height: 36px !important;
+  }
+  .ps5-bottom-bar {
+    display: none !important;
+  }
+}
+
+/* Animated Console Background Canvas */
+.ps5-ambient-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Boot sequence with dark animated background */
+.ps5-boot-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 99995;
+  background: radial-gradient(ellipse 95% 75% at 50% 50%, rgba(0, 0, 0, 0.45) 20%, rgba(0, 0, 0, 0.92) 90%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.85s ease;
+  cursor: pointer;
+  user-select: none;
+}
+
+.ps5-boot-screen.is-playing {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.ps5-boot-ambient {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ps5-boot-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 95% 75% at 50% 50%, transparent 20%, rgba(0, 0, 0, 0.85) 90%);
+  pointer-events: none;
+}
+
+.ps5-boot-center {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.ps5-boot-badge {
+  font-family: var(--font-family);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: uppercase;
+}
+
+.ps5-boot-title {
+  font-family: var(--font-family);
+  font-size: clamp(3.2rem, 7vw, 5.2rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+  margin: 0;
+  text-shadow: 0 0 35px rgba(255, 255, 255, 0.3), 0 2px 24px rgba(0, 0, 0, 0.9);
+  animation: bootTitlePulse 2.8s ease-in-out infinite alternate;
+}
+
+.ps5-boot-subline {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+@keyframes bootTitlePulse {
+  0% {
+    transform: scale(0.98);
+    opacity: 0.88;
+  }
+  100% {
+    transform: scale(1.02);
+    opacity: 1;
+    text-shadow: 0 0 40px rgba(255, 255, 255, 0.5);
+  }
+}
+
+/* Accessibility: Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
